@@ -22,11 +22,14 @@ const SignInForm = () => {
     // Event handler for form submission
     const handleSubmit = (e) => {
         e.preventDefault();
+        alert(`your details were\n email;${email}\npassword: ${password}`)
 
         // Add your form submission logic here
     };
     const googleSignInHandler=(credentialResponse)=>{
-        alert("you are :"+jwtDecode(credentialResponse.credential).name)
+        var data= jwtDecode(credentialResponse.credential)
+        setEmail(data.email)
+        alert("google sign in success")
     }
 
     return (
