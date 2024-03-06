@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import  "../../assets/CSS/Signin.css";
-
+import {GoogleOAuthProvider,GoogleLogin} from "@react-oauth/google"
+import {jwtDecode} from "jwt-decode"
 const SignInForm = () => {
     // State variables for email and password fields
     const [email, setEmail] = useState('');
@@ -21,8 +22,12 @@ const SignInForm = () => {
     // Event handler for form submission
     const handleSubmit = (e) => {
         e.preventDefault();
+
         // Add your form submission logic here
     };
+    const googleSignInHandler=(credentialResponse)=>{
+        alert("you are :"+jwtDecode(credentialResponse.credential).name)
+    }
 
     return (
         <div className="container">
@@ -51,6 +56,14 @@ const SignInForm = () => {
                 </a>
                 <input type="submit" value="Sign In" />
             </form>
+            <div><GoogleOAuthProvider clientId="217758845790-257slng4gnj41e2doloqgehirho1n12t.apps.googleusercontent.com">
+      <GoogleLogin
+        onSuccess={googleSignInHandler}
+        onError={() => {
+          console.log('Login Failed');
+        }}
+      />
+    </GoogleOAuthProvider></div>
         </div>
     );
 };
