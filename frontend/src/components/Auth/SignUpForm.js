@@ -1,14 +1,16 @@
+
+
 import React, { useState } from 'react';
-import "../../assets/CSS/Signin.css";
-import { GoogleOAuthProvider, GoogleLogin ,useGoogleLogin} from "@react-oauth/google";
-import {GoogleButton} from "react-google-button"
-import { jwtDecode } from "jwt-decode";
+import  "../../assets/CSS/Signin.css";
+import {GoogleOAuthProvider,GoogleLogin,useGoogleLogin} from "@react-oauth/google"
+import {jwtDecode} from "jwt-decode"
 import axios from "axios"
-const SignInForm = () => {
+import {GoogleButton} from "react-google-button"
+const SignUpForm = () => {
     // State variables for email and password fields
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-
+    const [confirmPassword,setConfirmPassword]=useState("")
     // Event handler for changes in the email input field
     const handleEmailChange = (e) => {
         setEmail(e.target.value);
@@ -22,13 +24,14 @@ const SignInForm = () => {
     // Event handler for form submission
     const handleSubmit = (e) => {
         e.preventDefault();
-        alert(`Your details were:\nEmail: ${email}\nPassword: ${password}`);
+        if (password!=confirmPassword){
+            alert("password and confirm password didn't match")
+        }else{
+        alert(`your details were\n email;${email}\npassword: ${password}`)}
 
         // Add your form submission logic here
     };
-
-    // Google sign-in handler
-    const googleSignInHandler = (accessToken) => {
+    const googleSignUpHandler = (accessToken) => {
         console.log("google sign in executed")
         // const data = jwtDecode(credentialResponse.access_token);
         // setEmail(data.email);
@@ -44,9 +47,14 @@ const SignInForm = () => {
     .catch(error => {
       alert(error);
     });
+
+
     };
+    const handleConfirmPasswordChange=(e)=>{
+        setConfirmPassword(e.target.value)
+    }
     const glogin = useGoogleLogin({
-        onSuccess: tokenResponse => {console.log(tokenResponse);googleSignInHandler(tokenResponse.access_token)},
+        onSuccess: tokenResponse => googleSignUpHandler(tokenResponse.access_token),
       });
     return (
         <div className="container">
@@ -70,32 +78,24 @@ const SignInForm = () => {
                     onChange={handlePasswordChange}
                     required
                 />
-                <a href="svnm.com" className="forgot-password">
-                    Forgot Password?
-                </a>
-                <input type="submit" value="Sign In" />
+                <label htmlFor="confirmpassword">Password:</label>
+                <input
+                    type="password"
+                    id="confirmpassword"
+                    name="confirmpassword"
+                    value={confirmPassword}
+                    onChange={handleConfirmPasswordChange}
+                    required
+                />
+                <input type="submit" value="Sign Up" />
             </form>
-            {/* <div style={{'width':'100%'}}>
-                <GoogleOAuthProvider clientId="217758845790-257slng4gnj41e2doloqgehirho1n12t.apps.googleusercontent.com">
-                    <GoogleLogin
-                    
-                        onSuccess={googleSignInHandler}
-                        
-                        onError={() => {
-                            console.log('Login Failed');
-                        }}
-                    />
-                </GoogleOAuthProvider>
-            </div> */}
             <GoogleButton 
             style={{width:"100%"}}
             label="Sign in with Google"
            
             onClick={() => glogin()}/>
-            
-            
         </div>
     );
 };
 
-export default SignInForm;
+export default SignUpForm;
