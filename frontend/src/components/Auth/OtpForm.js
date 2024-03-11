@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef,useEffect } from 'react';
 import "../../assets/CSS/OtpForm.css"
 import axios from "axios"
 const baseurl="http://localhost:3001"
-const OtpForm = () => {
+const OtpForm = ({loginDetails,setLoginDetails}) => {
   const [otp, setOtp] = useState(['', '', '', '']);
   const refs = [useRef(), useRef(), useRef(), useRef()];
 
@@ -20,15 +20,25 @@ const OtpForm = () => {
   const handleSubmit = async(e) => {
     e.preventDefault();
     const enteredOtp = otp.join('');
-    console.log('Submitted OTP:', enteredOtp);
-    const response=await axios.post(baseurl+"/api/verify-otp")
-    if (response.body.acknowledged===true){
+    console.log('Submitted OTP:', enteredOtp); 
+    const response=await axios.post("http://localhost:3001/api/verify-otp",{...loginDetails,otp:parseInt(enteredOtp)})
+    console.log(response.data)
+    if (response.data.acknowledged===true){
         console.log("otp verification success")
+        setLoginDetails(prevState => ({ ...prevState, verified: true }));
+        
     }else{
-        alert(response.body.des)
+        alert(response.data.des)
     }
     // Add your submit logic here, e.g., sending OTP to server for verification
   };
+useEffect(()=>{
+  if(loginDetails.verified===true){
+    alert("verification success",loginDetails)
+    console.log("verificication success by otp form")
+    
+  }
+},[loginDetails])
 
   return (
     <div className="outer-container">

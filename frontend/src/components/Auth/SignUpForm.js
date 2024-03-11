@@ -1,12 +1,18 @@
 
 
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import  "../../assets/CSS/Signin.css";
 import {GoogleOAuthProvider,GoogleLogin,useGoogleLogin} from "@react-oauth/google"
 import {jwtDecode} from "jwt-decode"
 import axios from "axios"
 import {GoogleButton} from "react-google-button"
+import OtpForm from "../Auth/OtpForm.js"
+import Loader from "../Loader/Loader.js"
 const SignUpForm = () => {
+    const [loader,setLoader]=useState(false)
+    const [otpForm,setOtpForm]=useState(false)
+    const [loginDetails,setLoginDetails]=useState({})
+    const [otpVerify,setOtpVerify]=useState(true)
     // State variables for email and password fields
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -22,12 +28,31 @@ const SignUpForm = () => {
     };
 
     // Event handler for form submission
-    const handleSubmit = (e) => {
+    const handleSubmit = async(e) => {
+        try{
         e.preventDefault();
-        if (password!=confirmPassword){
+        if (password!==confirmPassword){
             alert("password and confirm password didn't match")
         }else{
-        alert(`your details were\n email;${email}\npassword: ${password}`)}
+        console.log("before axios")
+        let response=await axios.post("http://localhost:3001/api/auth/signup",{email:email,password:password,verified:false,authType:"general"})
+        console.log("after axios")
+        if(response.data.acknowledged===true){
+            console.log(response.data.logindetails)
+            setLoginDetails(prevState=>{return {...prevState,...response.data.logindetails}})
+            setOtpVerify(prevState => !prevState);
+            
+            
+           
+            }
+            
+      else{
+            console.log(response.data.des)
+            alert(`your details were\n email;${email}\npassword: ${password}`)}
+        }
+    }catch(err){
+        console.log(err)
+    }
 
         // Add your form submission logic here
     };
@@ -53,12 +78,51 @@ const SignUpForm = () => {
     const handleConfirmPasswordChange=(e)=>{
         setConfirmPassword(e.target.value)
     }
-    const glogin = useGoogleLogin({
+    const glogin = useGoogleLogin({//default code given by google official documentation
         onSuccess: tokenResponse => googleSignUpHandler(tokenResponse.access_token),
       });
+    
+    // useEffect({
+    // },[loginDetails.verified])
+    if (loginDetails.verified===true){
+        window.location.href="/home"
+        console.log("verified by logindetails")
+    }
+
+    useEffect(() => {
+        console.log("useeffect called")
+        
+        if (loginDetails.verified === false && otpVerify ===false) {
+            const sendOtp = async () => {
+                try {
+                    setLoader(true)
+                    const response2 = await axios.post("http://localhost:3001/api/send-otp", loginDetails);
+                    console.log("OTP sent");
+                    setOtpForm(true)//displays the form to enter otp
+                    setLoader(false)
+                    
+                } catch (error) {
+                    console.error("Error sending OTP:", error);
+                }
+            };
+
+            sendOtp();  
+        }
+    }, [loginDetails, otpVerify]);
+
+
+    if(otpForm===true){
+        return (<>
+        
+        <OtpForm loginDetails={loginDetails} setLoginDetails={setLoginDetails}/></>)   
+    }else{
     return (
+        
         <div className="container">
-            <h2>Sign In</h2>
+            {loader&&
+            <Loader/>
+        }
+            <h2>Sign Up</h2>
             <form onSubmit={handleSubmit}>
                 <label htmlFor="email">Email:</label>
                 <input
@@ -95,7 +159,7 @@ const SignUpForm = () => {
            
             onClick={() => glogin()}/>
         </div>
-    );
+    );}
 };
 
 export default SignUpForm;

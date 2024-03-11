@@ -1,11 +1,12 @@
 const express=require("express")
 const app=express("express")
 const cors=require("cors")
-const {MongoClient}=require("mongodb")
+const {MongoClient,ObjectId}=require("mongodb")
 const uri=require("./uri.js")
 const nodemailer=require("nodemailer")
 const htmlOtpTemplate =require("./mailTemplates/htmlOtpTemplate.js")
 const math=require("math")
+
 app.use(cors())
 app.use(express.json())
 const cluster=new MongoClient(uri)
@@ -24,14 +25,14 @@ let transporter = nodemailer.createTransport({
     text: 'Hello world?', // plain text body
     html: htmlTemplate // html body
   }};
-app.post("/api/auth/login", async(req,res)=>{
+app.post("/api/auth/signin", async(req,res)=>{
     try{
     const data=req.body
-    console.log(req)
+    
     console.log(req.body)
      if(data.authType=="general"){
         const accounts=await cluster.db("edulink").collection("accounts")
-        const recv_data=await accounts.findOne({email:data.email,password:data.password})
+        const recv_data=await accounts.findOne({email:data.email,password:data.password,authType:"general"})
         if (recv_data==null){
             res.status(200).send({acknowledged:false,des:"account not found"})
         }else{
@@ -54,7 +55,11 @@ app.post("/api/auth/signup",async(req,res)=>{
             const recv_data=await accounts.findOne({email:data.email})
             if (recv_data==null){
                 const create_account=await accounts.insertOne(data)
-                res.status(200).send({acknowledged:create_account.acknowledged,des:"account successfully created"})
+                const create_account_respo=await accounts.findOne({email:data.email})
+                console.log(create_account)
+                console.log(create_account_respo)
+
+                res.status(200).send({acknowledged:create_account.acknowledged,des:"account successfully created",logindetails:{...create_account_respo}})
         }else{
             res.status(200).send({acknowledged:false,des:"account aldready exists please sign in to continue"})
         }
@@ -67,16 +72,17 @@ app.post("/api/auth/signup",async(req,res)=>{
 })
 app.post("/api/auth/google",async(req,res)=>{
     try{
+        console.log("google authentication called")
     const data=req.body
     const accounts =await cluster.db("edulink").collection("accounts")
         const recv_data=await accounts.findOne({email:data.email})
         if (recv_data==null){
-            const create_account=await accounts.insertOne(data)
+            const create_account=await accounts.insertOne({email:data.email,authType:"google",verified:true})
             const account_data=await accounts.findOne({email:data.email})
 
-            res.status(200).send({acknowledged:create_account.acknowledged,des:"account successfully created",...account_data})
+            res.status(200).send({acknowledged:create_account.acknowledged,des:"account successfully created",loginDetails:account_data})
         }else{
-            res.status(200).send({acknowledged:true,des:"account fetched successfully",...recv_data})
+            res.status(200).send({acknowledged:true,des:"account fetched successfully",loginDetails:recv_data})
         }
     }catch(err){
         console.log(err)
@@ -87,14 +93,18 @@ app.post("/api/auth/google",async(req,res)=>{
 
 app.post("/api/send-otp",async(req,res)=>{
     try{
-        console.log("request received")
+        console.log("sendotp called")
     const data=req.body
     const min = 1000;
     const max = 9999;
     const otp = Math.floor(Math.random() * (max - min + 1)) + min;
     const otpdb=await cluster.db("edulink").collection("otp")
+    
     const otp_res=await otpdb.findOneAndUpdate({_id:data.email},{$set:{otp:otp}},{upsert:true})
-    if(otp_res!=null){
+    console.log(data)
+    console.log(otp_res) 
+    console.log(data.email)
+    if(true){
         transporter.sendMail(mailOptions(data.email,"mail verification",htmlOtpTemplate(otp)),(err,info)=>{
             if(err){
                 console.log(err)
@@ -102,9 +112,7 @@ app.post("/api/send-otp",async(req,res)=>{
             }
             res.send({acknowledged:true,des:"otp sent"})
         })
-        
-    }else{
-        console.log(otp_res)
+         
     }
     }catch(err){
         console.log(err)
@@ -115,10 +123,14 @@ app.post("/api/send-otp",async(req,res)=>{
 
 app.post("/api/verify-otp",async(req,res)=>{
     try{
+        console.log("verifyotp called")
         const data=req.body
         const otpdb=await cluster.db("edulink").collection("otp")
-        const res_otp=await otpdb.findOne({email:data.email})
+        const res_otp=await otpdb.findOne({_id:data.email})
+        console.log(data)
         if(res_otp!==null && res_otp.otp==data.otp){
+            const accounts=await cluster.db("edulink").collection("accounts")
+            const user_info=await accounts.findOneAndUpdate({email:data.email},{$set:{verified:true}})
             res.send({acknowledged:true,des:"account created and verified"})
 
         }else{
