@@ -141,4 +141,37 @@ app.post("/api/verify-otp",async(req,res)=>{
         res.send({acknowledged:false,des:"error occured at our server"})
     }
 })
+
+//api to get the profile details 
+app.post("/api/profile" ,async(req,res)=>{
+    try{
+    data=req.body
+    accounts=await cluster.db("edulink").collection("accounts")
+
+    const respo=await accounts.find({email:data.email}).project({email:1,name:1,badges:1,_id:0,certificates:1,badges:1}).toArray()
+    console.log(respo)
+    res.send(respo[0])
+    }catch(err){
+        console.log(err)
+    }
+})
+//creating the api to get the courses available in the website
+app.post("/api/getcoursesinfo",async(req,res)=>{
+    try{
+        const courses=await cluster.db("edulink").collection("courses")
+        const respo=await courses.find({}).project({studentsEnrolled:0}).toArray()
+        res.send(respo)
+    }catch(err){
+        console.log(err)
+    }
+})
+app.post("./api/getcourse",async(req,res)=>{
+    try{
+        const data =req.body
+        const courses=await cluster.db("edulink").collection("courses")
+        const respo=await courses.findOne({})
+    }catch(err){
+        console.log(err)
+    }
+})
 app.listen(3001,()=>{console.log("backend running on the port 3001")})
