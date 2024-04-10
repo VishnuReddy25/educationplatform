@@ -6,7 +6,8 @@ const uri=require("./uri.js")
 const nodemailer=require("nodemailer")
 const htmlOtpTemplate =require("./mailTemplates/htmlOtpTemplate.js")
 const math=require("math")
-
+const stripe=require("stripe")("sk_test_51P3VWJSDr8IP7RmM08yxHbMzysDtENtB1prn3bL5PwAsF3JDBX4asDbVz7JVD8KZDqSyQ3FgjT30ZhitLKu37Hvl00xZARPcrk")
+const contactformcontroller=require("./contactformcontroller.js")
 app.use(cors())
 app.use(express.json())
 const cluster=new MongoClient(uri)
@@ -165,13 +166,66 @@ app.post("/api/getcoursesinfo",async(req,res)=>{
         console.log(err)
     }
 })
-app.post("./api/getcourse",async(req,res)=>{
+app.post("/api/getcourse",async(req,res)=>{
     try{
         const data =req.body
         const courses=await cluster.db("edulink").collection("courses")
         const respo=await courses.findOne({})
     }catch(err){
         console.log(err)
+    }
+})
+
+
+//payment handling stripe gateway
+
+app.post("/api/paymentprocesser",async(req,res)=>{
+    const data=req.body
+    // const lineitems = [{
+    //     price_data: {
+    //         currency: 'INR',
+    //         product_data: {
+    //             name: 'python'
+    //         }
+    //     },
+    //     quantity: 1
+    // }];
+    const lineItems = [{
+        price_data: {
+            currency: 'usd',
+            product_data: {
+                name: 'Python Course', // Specify the name of your product
+                images: ['https://example.com/python-course.jpg'], // Optional: Include images of your product
+            },
+            unit_amount: 1000, // Specify the amount in cents (e.g., $10.00)
+        },
+        quantity: 1, // Specify the quantity of the product
+    }];
+    
+    
+   const session=await stripe.checkout.sessions.create({
+    payment_method_types:["paypal"],
+    line_items:lineItems,
+    mode:"payment",
+    success_url:"https://localhost:3000/home",
+    cancel_url:"https://localhost:3000/otp"
+   })
+   res.send({id:session.id})
+
+})
+
+app.post("/api/contactformcontroller",async(req,res)=>{
+    try{
+    const data =req.body;
+    const contactusforms=await cluster.db("edulink").collection("contactusforms")
+    const response=await contactusforms.insertOne(data);
+    if (response.acknowledged){
+        res.send({acknowledged:true})
+    }else{
+        res.send({acknowledged:false})
+    }
+    }catch(error){
+        console.log(error)
     }
 })
 app.listen(3001,()=>{console.log("backend running on the port 3001")})

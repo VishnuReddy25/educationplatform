@@ -117,7 +117,7 @@ const SignUpForm = () => {
         <OtpForm loginDetails={loginDetails} setLoginDetails={setLoginDetails}/></>)   
     }else{
     return (
-        
+        <div className='outerbody'>
         <div className="container">
             {loader&&
             <Loader/>
@@ -155,9 +155,10 @@ const SignUpForm = () => {
             </form>
             <GoogleButton 
             style={{width:"100%"}}
-            label="Sign in with Google"
+            label="Sign up with Google"
            
             onClick={() => glogin()}/>
+        </div>
         </div>
     );}
 };

@@ -100,7 +100,7 @@ const SignInForm = () => {
         return (<OtpForm loginDetails={loginDetails} setLoginDetails={setLoginDetails}/>)
     }else{
     return (
-
+        <div className='outerbody'>
         <div className="container">
             {loader&&<Loader/>}
             <h2>Sign In</h2>
@@ -147,6 +147,7 @@ const SignInForm = () => {
             onClick={() => glogin()}/>
             
             
+        </div>
         </div>
     );}
 };
