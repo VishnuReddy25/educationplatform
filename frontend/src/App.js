@@ -49,7 +49,7 @@ function App() {
         <Route path="/contactus" element={<ContactUs />} />
         <Route path="/aboutus" element={<AboutUs />} />
         <Route path="/courselist" element={<CourseList loginDetails={loginDetails} setLoginDetails={setLoginDetails}/>}/>
-        <Route path="/course" element={<Coursecontent loginDetails={loginDetails}/>}/>
+        <Route path="/course" element={<Coursecontent loginDetails={loginDetails} setLoginDetails={setLoginDetails}/>}/>
         <Route path="/aihelp" element={<AiHelp/>}/>
       </Routes>
       </>

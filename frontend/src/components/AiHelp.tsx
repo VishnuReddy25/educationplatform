@@ -59,6 +59,14 @@ const AiHelp = () => {
       <div className='sticky top-0 h-full overflow-y-scroll'>
         <div className='sticky left-0 top-0 z-10 w-full bg-gray-400 text-[#4e64f7] text-ellipsis text-xl font-bold text-center mb-2 lg:text-3xl lg:h-auto lg:pb-1'>AiHelp</div>
         <div className='w-full h-[90vh] border-2 border-gray-100 pb-1'>
+        (
+          <div className="flex justify-center items-center h-full overflow-hidden">
+            <div>
+              <p className="text-lg font-semibold mb-2 text-center">Ask the AI Tutor</p>
+              <img  src="https://th.bing.com/th?id=OIP.SDKj_sVAdMs-ek212EOoPQHaE8&w=306&h=204&c=8&rs=1&qlt=90&o=6&dpr=1.3&pid=3.1&rm=2" alt="AI Tutor" className="w-20 h-20 rounded-full self-center " />
+            </div>
+          </div>
+        )
           {history && (
             <>
               {history.map((chat, index) => (
@@ -70,7 +78,9 @@ const AiHelp = () => {
                         <p className='font-bold text-lg text-teal-600 align-middle py-1'>Ai</p>
                       </div>
                       <div className='bg-gray-200 rounded-lg font-serif text-md border-1 border-gray-300 p-2'>
+                        <pre>
                         {chat.parts[0].text}
+                        </pre>
                       </div>
                     </div>
                   )}
@@ -87,12 +97,16 @@ const AiHelp = () => {
                   )}
                 </div>
               ))}
+              
               <div ref={chatEndRef}></div>
             </>
           )}
+          
+
+          
           <div className="h-11"></div>
           <div className='fixed bottom-0 flex bg-gray-200 w-full px-2 h-10 rounded-full z-10 mt-3 focus:border-green-200 focus:border-2 hover:border-2 hover:border-green-400'>
-            <input className='bg-transparent w-full outline-none focus:outline-none' value={value} onKeyDown={keyHandler} type='text' onChange={changeHandler} />
+            <input className='bg-transparent w-full outline-none focus:outline-none ' placeholder="ask your doubt with vidyaverse ai tutor" value={value} onKeyDown={keyHandler} type='text' onChange={changeHandler} />
             <Send sx={{ fontSize: 30 }} className='mt-1 pt-1' onClick={clickHandler} />
           </div>
         </div>

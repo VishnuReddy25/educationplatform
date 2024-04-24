@@ -224,6 +224,28 @@ app.post("/api/freeenroll",async(req,res)=>{
     }
 })
 
+app.post("/api/markassolved",async(req,res)=>{
+    const data=req.body
+    const accounts=cluster.db("edulink").collection("accounts")
+    const respo1=await accounts.findOne({email:data.email})
+    if (respo1!==null){
+        const respo2 = await accounts.updateOne(
+            {"email": data.email},
+            { 
+                $set: { 
+                    [`enrolled_courses.${data.courseid}.${data.unit}`]: true 
+                } 
+            }
+        );
+        
+        const respo3=await accounts.findOne({email:data.email})
+        if (respo2.acknowledged){
+            res.send({acknowledged:true,loginDetails:{...respo3}})
+        }
+    }else{
+        res.send({acknowledged:false})
+    }
+})
 //payment handling stripe gateway
 
 app.post("/api/paymentprocesser",async(req,res)=>{

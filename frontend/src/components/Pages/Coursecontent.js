@@ -8,7 +8,7 @@ import axios from 'axios';
 import {useLocation} from "react-router-dom"
 import { List } from '@mui/material';
 
-const Coursecontent = ({loginDetails}) => {
+const Coursecontent = ({loginDetails,setLoginDetails}) => {
     const [videolink,setVideolink]=useState("https://drive.google.com/file/d/1JOcmzrsCtWodeIsyEJJCYPH2XuMLxQ7z/preview")
     const [slider,setSlider]=useState({})
     const [description,setDescription]=useState("click on the video menu bar to play the video")
@@ -52,7 +52,7 @@ const Coursecontent = ({loginDetails}) => {
     </div>
     
     <div className="coursecontent relative h-[80vh] w-screen flex">
-        <VideoSlider slider={slider} setVideolink={setVideolink} setDescription={setDescription} setTitle={setTitle} slidermenu={slidermenu} setSliderMenu={setSliderMenu}/>
+        <VideoSlider slider={slider} setVideolink={setVideolink} setDescription={setDescription} setTitle={setTitle} slidermenu={slidermenu} setSliderMenu={setSliderMenu} setLoginDetails={setLoginDetails} courseId={courseid} loginDetails={loginDetails}/>
         <Videoplayer videolink={videolink} description={description} title={title}/>
     </div>
     </div>)
