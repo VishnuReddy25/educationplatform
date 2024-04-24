@@ -1,3 +1,4 @@
+
 .navbar {
   display: flex; /* Use flexbox layout */
   justify-content: space-between; /* Align items with space between them */
@@ -27,6 +28,7 @@
   background-color: aqua;
   padding: 0.5rem;
   border-radius: 2px;
+  align-items: center;
  
 }
 .navbar ul li a{
@@ -40,3 +42,5 @@
 body{
 margin: 0px;
 }
+
+

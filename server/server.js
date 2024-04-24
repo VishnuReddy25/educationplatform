@@ -8,8 +8,11 @@ const htmlOtpTemplate =require("./mailTemplates/htmlOtpTemplate.js")
 const math=require("math")
 const stripe=require("stripe")("sk_test_51P3VWJSDr8IP7RmM08yxHbMzysDtENtB1prn3bL5PwAsF3JDBX4asDbVz7JVD8KZDqSyQ3FgjT30ZhitLKu37Hvl00xZARPcrk")
 const contactformcontroller=require("./contactformcontroller.js")
+const AccountHolder=require("./dbschemas/AccountHolder.js")
+const chatbotcontroller=require("./chatbotcontroller.js")
 app.use(cors())
 app.use(express.json())
+app.use(chatbotcontroller)
 const cluster=new MongoClient(uri)
 cluster.connect().then(console.log("database successfully conncted")).catch(err=>{console.log(err)})
 let transporter = nodemailer.createTransport({
@@ -55,7 +58,8 @@ app.post("/api/auth/signup",async(req,res)=>{
             const accounts =await cluster.db("edulink").collection("accounts")
             const recv_data=await accounts.findOne({email:data.email})
             if (recv_data==null){
-                const create_account=await accounts.insertOne(data)
+                const temp=AccountHolder(data)// creating accountholer model
+                const create_account=await accounts.insertOne(temp)
                 const create_account_respo=await accounts.findOne({email:data.email})
                 console.log(create_account)
                 console.log(create_account_respo)
@@ -78,11 +82,13 @@ app.post("/api/auth/google",async(req,res)=>{
     const accounts =await cluster.db("edulink").collection("accounts")
         const recv_data=await accounts.findOne({email:data.email})
         if (recv_data==null){
-            const create_account=await accounts.insertOne({email:data.email,authType:"google",verified:true})
+            const temp=AccountHolder({email:data.email,authType:"google",verified:true,name:data.name,profile_picture:data.picture})
+            const create_account=await accounts.insertOne(temp)
             const account_data=await accounts.findOne({email:data.email})
-
+            
             res.status(200).send({acknowledged:create_account.acknowledged,des:"account successfully created",loginDetails:account_data})
         }else{
+            
             res.status(200).send({acknowledged:true,des:"account fetched successfully",loginDetails:recv_data})
         }
     }catch(err){
@@ -90,7 +96,7 @@ app.post("/api/auth/google",async(req,res)=>{
         res.status(404).send({acknowledged:false,des:"error occured at our server"})
     }
 
-})
+});
 
 app.post("/api/send-otp",async(req,res)=>{
     try{
@@ -166,16 +172,57 @@ app.post("/api/getcoursesinfo",async(req,res)=>{
         console.log(err)
     }
 })
-app.post("/api/getcourse",async(req,res)=>{
+app.post("/api/getcoursecontent",async(req,res)=>{
     try{
+        console.log('getcoursecontent called')
         const data =req.body
         const courses=await cluster.db("edulink").collection("courses")
-        const respo=await courses.findOne({})
+        const accounts=await cluster.db("edulink").collection("accounts")
+        const respo1=await accounts.findOne({email:data.email})
+        if (data.courseid in respo1.enrolled_courses){
+            const respo2=await courses.findOne({_id:new ObjectId(data.courseid)})
+            console.log({acknowledged:true,content:respo2.content})
+            res.send({acknowledged:true,content:respo2.content})
+        }else{
+            res.send({acknowledged:false})
+        }
     }catch(err){
         console.log(err)
     }
 })
 
+//courses returning function
+app.get("/api/getcourses",async(req,res)=>{
+    try{
+        const courses=await cluster.db('edulink').collection("courses")
+        const response=await courses.find({}).project({enrolled_courses:0,content:0,materials_resources:0}).toArray()
+        console.log(response)
+        res.send({acknowledged:true,courses:response})
+    }catch(error){
+        console.log(error)
+    }
+})
+
+//free course enrollment function
+app.post("/api/freeenroll",async(req,res)=>{
+    try{
+    const data =req.body
+    const database=cluster.db("edulink")
+    const accounts =await database.collection('accounts')
+    const courses=await database.collection("courses")
+    const respo1=await accounts.findOne({email:data.email})
+    const respo2=await courses.findOne({_id: new ObjectId(data.courseid)})
+    if (respo1 !==null && respo2!==null && !Object.keys(respo1.enrolled_courses).includes(data.courseid)){
+        const respo3 =await accounts.updateOne({email:data.email},{$set:{enrolled_courses:{...respo1.enrolled_courses,[data.courseid]:""}}})
+        res.send({acknowledged:true,enrolled_courses:{...respo1.enrolled_courses,[data.courseid]:""}})
+    }else{
+        res.send({acknowledged:false,description:"aldready enrolled "})
+    }
+    }catch(error){
+        console.log(error)
+        res.send({acknowledged:false,description:"error occured"})
+    }
+})
 
 //payment handling stripe gateway
 

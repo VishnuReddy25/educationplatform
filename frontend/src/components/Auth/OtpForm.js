@@ -4,19 +4,27 @@ import axios from "axios"
 const baseurl="http://localhost:3001"
 const OtpForm = ({loginDetails,setLoginDetails}) => {
   const [otp, setOtp] = useState(['', '', '', '']);
-  const refs = [useRef(), useRef(), useRef(), useRef()];
+  const refs = useRef([])
 
   const handleChange = (index, value) => {
     const newOtp = [...otp];
-    newOtp[index] = value.replace(/\D/g, '').slice(0, 1); // Allow only numeric input and limit to 1 character
+    newOtp[index] = value.substring(value.length-1) // Allow only numeric input and limit to 1 character
     setOtp(newOtp);
     
     // Move focus to the next input field
-    if (value && index < refs.length - 1) {
-      refs[index + 1].current.focus();
+    console.log((value ,index < refs.length - 1) )
+    if (value && index < otp.length - 1 && refs.current[index+1]) {
+      refs.current[index + 1].focus();
+      console.log("shift focus executed")
     }
+    console.log(refs)
   };
-
+  
+  const handleKeyDown=(index,e)=>{
+      if (e.key=="Backspace" && e.target.value==="" && index>0){
+        refs.current[index-1].focus()
+      }
+  }
   const handleSubmit = async(e) => {
     e.preventDefault();
     const enteredOtp = otp.join('');
@@ -41,6 +49,7 @@ useEffect(()=>{
 },[loginDetails])
 
   return (
+    <div className='outer2-otp'>
     <div className="outer-container">
       <h2>Enter OTP</h2>
       <div className="otp-input">
@@ -50,16 +59,18 @@ useEffect(()=>{
             type="text"
             value={digit}
             onChange={(e) => handleChange(index, e.target.value)}
-            maxLength={1}
+            // maxLength={1}
             style={{ width: '40px', margin: '0 5px', textAlign: 'center' }}
-            ref={refs[index]}
+            ref={(input)=>(refs.current[index]=input)}
             className="otp-digit"
+            onKeyDown={(e)=>{handleKeyDown(index,e)}}
           />
         ))}
       </div>
       <form onSubmit={handleSubmit}>
         <input type="submit" value="Submit" className="submit-btn" />
       </form>
+    </div>
     </div>
   );
 };

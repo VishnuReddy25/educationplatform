@@ -1,17 +1,20 @@
 
 
 import React, { useState,useEffect } from 'react';
-import  "../../assets/CSS/Signin.css";
+// import  "../../assets/CSS/Signin.css";
 import {GoogleOAuthProvider,GoogleLogin,useGoogleLogin} from "@react-oauth/google"
 import {jwtDecode} from "jwt-decode"
 import axios from "axios"
 import {GoogleButton} from "react-google-button"
 import OtpForm from "../Auth/OtpForm.js"
 import Loader from "../Loader/Loader.js"
+import { useNavigate } from 'react-router-dom';
+
 const SignUpForm = () => {
+  const navigate= useNavigate()
     const [loader,setLoader]=useState(false)
     const [otpForm,setOtpForm]=useState(false)
-    const [loginDetails,setLoginDetails]=useState({})
+    const [loginDetails,setLoginDetails]=useState({verified:false})
     const [otpVerify,setOtpVerify]=useState(true)
     // State variables for email and password fields
     const [email, setEmail] = useState('');
@@ -41,9 +44,6 @@ const SignUpForm = () => {
             console.log(response.data.logindetails)
             setLoginDetails(prevState=>{return {...prevState,...response.data.logindetails}})
             setOtpVerify(prevState => !prevState);
-            
-            
-           
             }
             
       else{
@@ -66,8 +66,16 @@ const SignUpForm = () => {
         Authorization: `Bearer ${accessToken}`
       }
     })
-    .then(response => {
+    .then(async response => {
       console.log(response.data);
+      const signupresponse=await axios.post("http://localhost:3001/api/auth/google",response.data)
+        if (signupresponse.data.acknowledged){
+
+            setLoginDetails(signupresponse.data.loginDetails)
+            navigate("/home")
+        }else{
+            alert("loginfailed error occurredd")
+        }
     })
     .catch(error => {
       alert(error);
@@ -84,15 +92,15 @@ const SignUpForm = () => {
     
     // useEffect({
     // },[loginDetails.verified])
-    if (loginDetails.verified===true){
-        window.location.href="/home"
-        console.log("verified by logindetails")
-    }
+   
 
     useEffect(() => {
         console.log("useeffect called")
-        
+        console.log(loginDetails)
+        console.log((loginDetails.verified === false && otpVerify ===false))
+        console.log(loginDetails,otpVerify)
         if (loginDetails.verified === false && otpVerify ===false) {
+            
             const sendOtp = async () => {
                 try {
                     setLoader(true)
@@ -107,60 +115,70 @@ const SignUpForm = () => {
             };
 
             sendOtp();  
+            console.log("otp block exe started")
         }
     }, [loginDetails, otpVerify]);
 
 
-    if(otpForm===true){
+    if(otpForm){
         return (<>
         
         <OtpForm loginDetails={loginDetails} setLoginDetails={setLoginDetails}/></>)   
     }else{
-    return (
-        <div className='outerbody'>
-        <div className="container">
-            {loader&&
-            <Loader/>
-        }
-            <h2>Sign Up</h2>
-            <form onSubmit={handleSubmit}>
-                <label htmlFor="email">Email:</label>
-                <input
-                    type="text"
-                    id="email"
-                    name="email"
-                    value={email}
-                    onChange={handleEmailChange}
-                    required
-                />
-                <label htmlFor="password">Password:</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    value={password}
-                    onChange={handlePasswordChange}
-                    required
-                />
-                <label htmlFor="confirmpassword">Password:</label>
-                <input
-                    type="password"
-                    id="confirmpassword"
-                    name="confirmpassword"
-                    value={confirmPassword}
-                    onChange={handleConfirmPasswordChange}
-                    required
-                />
-                <input type="submit" value="Sign Up" />
-            </form>
-            <GoogleButton 
-            style={{width:"100%"}}
-            label="Sign up with Google"
-           
-            onClick={() => glogin()}/>
-        </div>
-        </div>
-    );}
+        return (
+            <div className="outerbody flex items-center justify-center h-[85vh]">
+              <div className="container max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
+                {loader && <Loader />}
+                <h2 className="text-center text-black text-lg font-bold mb-6">Sign Up</h2>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block" htmlFor="email">Email:</label>
+                    <input
+                      className="w-full px-4 py-2 bg-gray-200 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                      type="text"
+                      id="email"
+                      name="email"
+                      value={email}
+                      onChange={handleEmailChange}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block" htmlFor="password">Password:</label>
+                    <input
+                      className="w-full px-4 py-2 bg-gray-200 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                      type="password"
+                      id="password"
+                      name="password"
+                      value={password}
+                      onChange={handlePasswordChange}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block" htmlFor="confirmpassword">Confirm Password:</label>
+                    <input
+                      className="w-full px-4 py-2 bg-gray-200 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                      type="password"
+                      id="confirmpassword"
+                      name="confirmpassword"
+                      value={confirmPassword}
+                      onChange={handleConfirmPasswordChange}
+                      required
+                    />
+                  </div>
+                  <button className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" type="submit">Sign Up</button>
+                </form>
+                <div className="mt-4">
+                  <GoogleButton
+                    label="Sign up with Google"
+                    onClick={glogin}
+                    style={{width:"100%"}}
+                  />
+                </div>
+              </div>
+            </div>
+          );}
 };
 
 export default SignUpForm;

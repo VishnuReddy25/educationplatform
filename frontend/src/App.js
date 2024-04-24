@@ -1,5 +1,5 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route,useNavigate,useHistory } from "react-router-dom";
 import './App.css';
 import SignInForm from "./components/Auth/SignInForm";
 import Home from "./components/Pages/Home";
@@ -12,23 +12,47 @@ import ContactUs from "./components/Pages/ContactUs.js";
 import AboutUs from "./components/Pages/AboutUs.js";
 import CourseList from "./components/CourseList.js";
 import Coursecontent from './components/Pages/Coursecontent.js'
+import Navbar1 from "./components/Navbar1.tsx";
+import AiHelp from "./components/AiHelp.tsx";
 function App() {
-  return (
-    <Router>
-      <Navbar /> {/* Render Navbar component outside of Routes */}
+  
+  const navigate=useNavigate()
+  const [loginDetails,setLoginDetails]=useState(JSON.parse(sessionStorage.getItem("loginDetails"))||{})
+  const [islogin,setIslogin]=useState(JSON.parse(sessionStorage.getItem("islogin"))||false)
+  useEffect(()=>{
+    console.log(islogin,islogin===false)
+      if (islogin===false){
+        console.log("navigate executed")
+        navigate("/signin")
+
+      }else if(islogin===true) {
+        sessionStorage.setItem("islogin",JSON.stringify(true))
+      }
+  },[islogin])
+
+  useEffect(()=>{
+    if (loginDetails){
+    sessionStorage.setItem("loginDetails",JSON.stringify(loginDetails))
+    console.log("loginDetails",loginDetails)}
+  },[loginDetails])
+  return (<>
+      
+      <Navbar1 islogin={islogin}/> {/* Render Navbar component outside of Routes */}
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/signin" element={<SignInForm />} />
-        <Route path="/signup" element={<SignUpForm />} />
+        {/* <Route path="/navbar1" element={<Navbar1 islogin={islogin} />} /> */}
+        <Route path="/home" element={<Home/>}/>
+        <Route path="/signin" element={<SignInForm loginDetails={loginDetails} setLoginDetails={setLoginDetails} setIslogin={setIslogin} navigate={navigate}/>} />
+        <Route path="/signup" element={<SignUpForm loginDetails={loginDetails} setLoginDetails={setLoginDetails} setIslogin={setIslogin} navigate={navigate}/>} />
         <Route path="/otp" element={<OtpForm />} />
         <Route path="/loader" element={<Loader />} />
         <Route path="/paymentform" element={<CoursePayment />} />
         <Route path="/contactus" element={<ContactUs />} />
         <Route path="/aboutus" element={<AboutUs />} />
-        <Route path="/courselist" element={<CourseList/>}/>
-        <Route path="/courseplayer" element={<Coursecontent/>}/>
+        <Route path="/courselist" element={<CourseList loginDetails={loginDetails} setLoginDetails={setLoginDetails}/>}/>
+        <Route path="/course" element={<Coursecontent loginDetails={loginDetails}/>}/>
+        <Route path="/aihelp" element={<AiHelp/>}/>
       </Routes>
-    </Router>
+      </>
   );
 }
 

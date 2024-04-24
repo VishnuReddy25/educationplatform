@@ -1,20 +1,29 @@
 import React from 'react'
 import '../assets/CSS/Videoplayer.css'
-const Videoplayer = () => {
+const Videoplayer = ({videolink,title,description}) => {
   return (
-    <div className='videoplayercontainer'>
-        <div className='videotitle'>
-            Title
+    <div className='videoplayercontainer w-screen '>
+        <div className='videotitle text-center'>
+            {title}
         </div>
-        <div className='videoplayer'>
-        <video controls width="600">
-        <source src="/SampleVideo_1280x720_1mb.mp4" type="video/mp4" />
+        <div className='videoplayer '>
+        {/* <video controls width="600">
+        <source src="https://drive.google.com/file/d/15s7sM4yIUuuZRXI0ighNJkFkuEuBEZZ7/view?t=15" type="video/mp4" />
                 Your browser does not support the video tag.
-        </video>
+        </video> */}
+        <iframe 
+    src={videolink}
+    width="640" 
+    height="400" 
+    allow="autoplay; fullscreen">
+</iframe>
+
+       
+
         </div>
         <div className='videoplayerdescription'>
             <h1>Description</h1>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Saepe enim blanditiis minus numquam quisquam incidunt possimus magni aliquid, dicta eveniet laborum exercitationem repellat facere aspernatur rerum alias provident cumque temporibus?
+            {description}
         </div>
     </div>
   )

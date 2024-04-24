@@ -1,19 +1,17 @@
 import React, { useState,useEffect } from 'react';
-import "../../assets/CSS/Signin.css";
+// import "../../assets/CSS/Signin.css";
 import { GoogleOAuthProvider, GoogleLogin ,useGoogleLogin} from "@react-oauth/google";
 import {GoogleButton} from "react-google-button"
 import { jwtDecode } from "jwt-decode";
 import Loader from '../Loader/Loader';
 import axios from "axios"
 import OtpForm from './OtpForm';
-const SignInForm = () => {
+const SignInForm = ({loginDetails,setLoginDetails,setIslogin,navigate}) => {
     const [loader,setLoader]=useState(false)
    const [otpForm,setOtpForm]=useState(false)
-    const [loginDetails,setLoginDetails]=useState({})
     // State variables for email and password fields
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-
     // Event handler for changes in the email input field
     const handleEmailChange = (e) => {
         setEmail(e.target.value);
@@ -30,8 +28,7 @@ const SignInForm = () => {
         console.log(loginDetails)
         
         if(loginDetails.verified===true){
-            console.log(loginDetails)
-            //window.location.href="/home"
+            
         }else if(loginDetails.verified===false){
             
             //we have to call the send otp function
@@ -86,7 +83,9 @@ const SignInForm = () => {
       console.log(response2.data)
       if (response2.data.acknowledged===true){
         console.log(response2.data.loginDetails)
+        setIslogin(true)
         setLoginDetails(response2.data.loginDetails)
+        navigate("/home")//navigation to hame after successfull sign up
       }
     })
     .catch(error => {
@@ -99,57 +98,49 @@ const SignInForm = () => {
     if(otpForm){
         return (<OtpForm loginDetails={loginDetails} setLoginDetails={setLoginDetails}/>)
     }else{
-    return (
-        <div className='outerbody'>
-        <div className="container">
-            {loader&&<Loader/>}
-            <h2>Sign In</h2>
-            <form onSubmit={handleSubmit}>
-                <label htmlFor="email">Email:</label>
-                <input
-                    type="text"
-                    id="email"
-                    name="email"
-                    value={email}
-                    onChange={handleEmailChange}
-                    required
-                />
-                <label htmlFor="password">Password:</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    value={password}
-                    onChange={handlePasswordChange}
-                    required
-                />
-                <a href="svnm.com" className="forgot-password">
-                    Forgot Password?
-                </a>
-                <input type="submit" value="Sign In" />
-            </form>
-            {/* <div style={{'width':'100%'}}>
-                <GoogleOAuthProvider clientId="217758845790-257slng4gnj41e2doloqgehirho1n12t.apps.googleusercontent.com">
-                    <GoogleLogin
-                    
-                        onSuccess={googleSignInHandler}
-                        
-                        onError={() => {
-                            console.log('Login Failed');
-                        }}
+        return (
+            <div className="flex justify-center items-center h-screen bg-gray-100">
+              <div className="container max-w-md p-6 bg-white rounded-lg shadow-lg">
+                {loader && <Loader />}
+                <h2 className="text-center text-black font-serif text-xl mb-6">Sign In</h2>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block font-mono" htmlFor="email">Email:</label>
+                    <input
+                      className="w-full px-4 py-2 bg-gray-200 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                      type="text"
+                      id="email"
+                      name="email"
+                      value={email}
+                      onChange={handleEmailChange}
+                      required
                     />
-                </GoogleOAuthProvider>
-            </div> */}
-            <GoogleButton 
-            style={{width:"100%"}}
-            label="Sign in with Google"
-           
-            onClick={() => glogin()}/>
-            
-            
-        </div>
-        </div>
-    );}
+                  </div>
+                  <div>
+                    <label className="block font-mono" htmlFor="password">Password:</label>
+                    <input
+                      className="w-full px-4 py-2 bg-gray-200 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                      type="password"
+                      id="password"
+                      name="password"
+                      value={password}
+                      onChange={handlePasswordChange}
+                      required
+                    />
+                  </div>
+                  <a href="svnm.com" className="block text-sm text-gray-600 hover:text-blue-500">Forgot Password?</a>
+                  <button className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" type="submit">Sign In</button>
+                </form>
+                <div className="mt-4">
+                  <GoogleButton
+                    label="Sign in with Google"
+                    onClick={glogin}
+                    style={{width:"100%"}}
+                  />
+                </div>
+              </div>
+            </div>
+          );}
 };
 
 export default SignInForm;
