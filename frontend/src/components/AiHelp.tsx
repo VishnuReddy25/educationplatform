@@ -77,7 +77,7 @@ const AiHelp = () => {
                         <SmartToyIcon className='m-1' />
                         <p className='font-bold text-lg text-teal-600 align-middle py-1'>Ai</p>
                       </div>
-                      <div className='bg-gray-200 rounded-lg font-serif text-md border-1 border-gray-300 p-2'>
+                      <div className='bg-gray-200 rounded-lg font-serif text-md border-1 border-gray-300 p-2 overflow-auto'>
                         <pre>
                         {chat.parts[0].text}
                         </pre>

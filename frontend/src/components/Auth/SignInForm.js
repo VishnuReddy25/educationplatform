@@ -57,6 +57,10 @@ const SignInForm = ({loginDetails,setLoginDetails,setIslogin,navigate}) => {
         const response=await axios.post("http://localhost:3001/api/auth/signin",{email:email,password:password,authType:"general"}) // fetching the details from the server
         if (response.data.acknowledged===true){
             setLoginDetails(prevState=>({...prevState,...response.data.loginDetails}))
+            setIslogin(true)
+            sessionStorage.setItem('islogin',JSON.stringify(JSON.stringify(true)))
+            sessionStorage.setItem('loginDetails',JSON.stringify(loginDetails))
+            navigate("/home")
         }
         console.log(response.data)
         alert(`Your details were:\nEmail: ${email}\nPassword: ${password}`);

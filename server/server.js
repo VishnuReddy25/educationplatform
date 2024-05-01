@@ -10,16 +10,18 @@ const stripe=require("stripe")("sk_test_51P3VWJSDr8IP7RmM08yxHbMzysDtENtB1prn3bL
 const contactformcontroller=require("./contactformcontroller.js")
 const AccountHolder=require("./dbschemas/AccountHolder.js")
 const chatbotcontroller=require("./chatbotcontroller.js")
+const PaymentController=require("./PaymentController.js")
 app.use(cors())
 app.use(express.json())
 app.use(chatbotcontroller)
+app.use(PaymentController)
 const cluster=new MongoClient(uri)
-cluster.connect().then(console.log("database successfully conncted")).catch(err=>{console.log(err)})
+cluster.connect().then(()=>{console.log("database successfully conncted")}).catch(err=>{console.log(err)})
 let transporter = nodemailer.createTransport({
     service: 'Gmail',
     auth: {
       user: 'edulink.mailservices@gmail.com',
-      pass: 'hcob coir phyo alpo'
+      pass: 'vxjt apns lrgz rvgp'//'hcob coir phyo alpo'
     }
   });
   let mailOptions = (receiver,subject,htmlTemplate)=>{return{
@@ -36,7 +38,7 @@ app.post("/api/auth/signin", async(req,res)=>{
     console.log(req.body)
      if(data.authType=="general"){
         const accounts=await cluster.db("edulink").collection("accounts")
-        const recv_data=await accounts.findOne({email:data.email,password:data.password,authType:"general"})
+        const recv_data=await accounts.findOne({email:data.email,password:data.password})
         if (recv_data==null){
             res.status(200).send({acknowledged:false,des:"account not found"})
         }else{
@@ -141,6 +143,7 @@ app.post("/api/verify-otp",async(req,res)=>{
             res.send({acknowledged:true,des:"account created and verified"})
 
         }else{
+            console.log(res_otp)
             res.send({acknowledged:false,des:"otp verification failed"})
         }
     }catch(err){
@@ -181,7 +184,6 @@ app.post("/api/getcoursecontent",async(req,res)=>{
         const respo1=await accounts.findOne({email:data.email})
         if (data.courseid in respo1.enrolled_courses){
             const respo2=await courses.findOne({_id:new ObjectId(data.courseid)})
-            console.log({acknowledged:true,content:respo2.content})
             res.send({acknowledged:true,content:respo2.content})
         }else{
             res.send({acknowledged:false})
@@ -196,7 +198,6 @@ app.get("/api/getcourses",async(req,res)=>{
     try{
         const courses=await cluster.db('edulink').collection("courses")
         const response=await courses.find({}).project({enrolled_courses:0,content:0,materials_resources:0}).toArray()
-        console.log(response)
         res.send({acknowledged:true,courses:response})
     }catch(error){
         console.log(error)
@@ -213,8 +214,30 @@ app.post("/api/freeenroll",async(req,res)=>{
     const respo1=await accounts.findOne({email:data.email})
     const respo2=await courses.findOne({_id: new ObjectId(data.courseid)})
     if (respo1 !==null && respo2!==null && !Object.keys(respo1.enrolled_courses).includes(data.courseid)){
-        const respo3 =await accounts.updateOne({email:data.email},{$set:{enrolled_courses:{...respo1.enrolled_courses,[data.courseid]:""}}})
-        res.send({acknowledged:true,enrolled_courses:{...respo1.enrolled_courses,[data.courseid]:""}})
+        const respo3 =await accounts.updateOne({email:data.email},{$set:{enrolled_courses:{...respo1.enrolled_courses,[data.courseid]:{title:data.title}}}})
+        res.send({acknowledged:true,enrolled_courses:{...respo1.enrolled_courses,[data.courseid]:{title:respo2.title}}})
+    }else{
+        res.send({acknowledged:false,description:"aldready enrolled "})
+    }
+    }catch(error){
+        console.log(error)
+        res.send({acknowledged:false,description:"error occured"})
+    }
+})
+
+app.post("/api/paymentenroll",async(req,res)=>{
+    try{
+    const data =req.body
+    
+    const database=cluster.db("edulink")
+    const accounts =await database.collection('accounts')
+    const courses=await database.collection("courses")
+    const respo1=await accounts.findOne({email:data.email})
+    const respo2=await courses.findOne({_id: new ObjectId(data.courseid)})
+    console.log(respo2)
+    if (respo1 !==null && respo2!==null && !Object.keys(respo1.enrolled_courses).includes(data.courseid)){
+        const respo3 =await accounts.updateOne({email:data.email},{$set:{enrolled_courses:{...respo1.enrolled_courses,[data.courseid]:{title:data.coursetitle}}}})
+        res.send({acknowledged:true,enrolled_courses:{...respo1.enrolled_courses,[data.courseid]:{title:respo2.title}}})
     }else{
         res.send({acknowledged:false,description:"aldready enrolled "})
     }
@@ -228,6 +251,9 @@ app.post("/api/markassolved",async(req,res)=>{
     const data=req.body
     const accounts=cluster.db("edulink").collection("accounts")
     const respo1=await accounts.findOne({email:data.email})
+    const courses=cluster.db("edulink").collection("courses")
+    const respo=await courses.findOne({_id:new ObjectId(data.courseid)})
+    console.log(respo1,respo)
     if (respo1!==null){
         const respo2 = await accounts.updateOne(
             {"email": data.email},
@@ -236,7 +262,14 @@ app.post("/api/markassolved",async(req,res)=>{
                     [`enrolled_courses.${data.courseid}.${data.unit}`]: true 
                 } 
             }
+        
         );
+        console.log(Object.keys(respo1.enrolled_courses[data.courseid]).length,Object.keys(respo.content).length)
+        console.log(Object.keys(respo1.enrolled_courses[data.courseid]))
+        console.log(Object.keys(respo.content))
+        if(Object.keys(respo1.enrolled_courses[data.courseid]).length===Object.keys(respo.content).length){
+            const respo3=await accounts.findOneAndUpdate({email:data.email},{$set:{[`completed_courses.${data.courseid}.title`]:data.title}})
+        }
         
         const respo3=await accounts.findOne({email:data.email})
         if (respo2.acknowledged){
@@ -282,7 +315,16 @@ app.post("/api/paymentprocesser",async(req,res)=>{
    res.send({id:session.id})
 
 })
-
+app.post("/api/getenrolledcourses",async(req,res)=>{
+    try{
+    const data=req.body
+    const accounts=cluster.db("edulink").collection("accounts")
+    const respo1=await accounts.findOne({email:data.email})
+    res.send({acknowledged:true,loginDetails:respo1})
+    }catch(err){
+        console.log(err)
+    }
+})
 app.post("/api/contactformcontroller",async(req,res)=>{
     try{
     const data =req.body;

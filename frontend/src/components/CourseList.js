@@ -1,8 +1,11 @@
 import React, { useEffect } from 'react';
 import "../assets/CSS/CourseList.css"
-import { Link } from 'react-router-dom';
+import { Link ,useNavigate} from 'react-router-dom';
 import { useState } from 'react';
+import {v4 as uuidv4} from 'uuid'
 import axios from 'axios'
+
+
 const coursess = [
   {_id:"66191f2d6b57c85e24968dc4",
     title: "Introduction to Programming",
@@ -41,16 +44,95 @@ const coursess = [
   }
 ];
 
-function CourseListing({ courses, loginDetails, setLoginDetails }) {
+function CourseListing({ courses, loginDetails, setLoginDetails ,setEnrollDetails}) {
+  
+  const navigate =useNavigate()
+  const paymentHandler = async (e,amount,currency,receiptId,courseid,coursetitle) => {
+    const response = await fetch("http://localhost:3001/api/order", {
+      method: "POST",
+      body: JSON.stringify({
+        amount:amount*100,
+        currency:"INR",
+        receipt: receiptId,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const order = await response.json();
+    console.log(order);
 
-  const enrollHandler = async (courseid) => {
+    var options = {
+      key: "rzp_test_r9nAigUoHNaYOV", // Enter the Key ID generated from the Dashboard
+      amount:amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+      currency:"INR",
+      name: "VidyaVerse ", //your business name
+      description: "paying for the enrollment of course",
+      image: "https://th.bing.com/th/id/OIG2.3I5AIG7giQ6F8ZvA0Y_6?w=270&h=270&c=6&r=0&o=5&dpr=1.3&pid=ImgGn",
+      order_id: order.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+      method: {
+        netbanking: true,
+        card: true,
+        qr_code:true,
+        upi: true, // enable UPI payment method
+      },
+      handler: async function (response) {
+        const body = {
+          ...response,courseid:courseid,coursetitle:coursetitle,email:loginDetails.email,
+        };
+        console.log(body)
+        const validateRes = await fetch(
+          "http://localhost:3001/api/order/validate",
+
+          {
+            method: "POST",
+            body: JSON.stringify(body),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const jsonRes = await validateRes.json();
+        if(jsonRes.msg==="success"){
+          setEnrollDetails(prev=>!prev)
+          navigate("/courselist")
+        }
+        console.log(jsonRes);
+      },
+      prefill: {
+        //We recommend using the prefill parameter to auto-fill customer's contact information, especially their phone number
+        name: loginDetails.name, //your customer's name
+        email: loginDetails.email,
+        // contact: "9908092442", //Provide the customer's phone number for better conversion rates
+      },
+      notes: {
+        address: "vidya verse",
+      },
+      theme: {
+        color: "#3399cc",
+      },
+    };
+    var rzp1 = new window.Razorpay(options);
+    rzp1.on("payment.failed", function (response) {
+      alert(response.error.code);
+      alert(response.error.description);
+      alert(response.error.source);
+      alert(response.error.step);
+      alert(response.error.reason);
+      alert(response.error.metadata.order_id);
+      alert(response.error.metadata.payment_id);
+    });
+    rzp1.open();
+    e.preventDefault();
+    
+  };
+  const enrollHandler = async (courseid,title) => {
     try {
-      const response = await axios.post("http://localhost:3001/api/freeenroll", { courseid: courseid, email: loginDetails.email })
+      const response = await axios.post("http://localhost:3001/api/freeenroll", { courseid: courseid, email: loginDetails.email,title:title })
       if (response.data.acknowledged === true) {
         console.log('enrollment success')
         console.log(response.data.enrolled_courses)
         setLoginDetails(prev => ({ ...prev, enrolled_courses: response.data.enrolled_courses }))
-
       } else {
         alert(response.data.description)
       }
@@ -75,7 +157,13 @@ function CourseListing({ courses, loginDetails, setLoginDetails }) {
                 <Link to={`/course?data=${encodeURIComponent(JSON.stringify(course._id))}`}>Link to Course</Link>
               </button>
             ) : (
-              <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" onClick={() => enrollHandler(course._id)}>Enroll Now</button>
+              <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" onClick={(e) =>{ 
+                if(course.price!==0){
+                  alert("it was a payment course")
+                  console.log(typeof(course.price))
+                  paymentHandler(e,course.price,"INR",uuidv4(),course._id,course.title)
+                }else{
+                enrollHandler(course._id,course.title)}}}>Enroll Now</button>
             )}
           </div>
         </div>
@@ -86,7 +174,7 @@ function CourseListing({ courses, loginDetails, setLoginDetails }) {
 
 function CourseList({ loginDetails, setLoginDetails }) {
   const [courses, setCourses] = useState([])
-
+  const [enrollDetails,setEnrollDetails]=useState(false)
   useEffect(() => {
     if (courses.length === 0) {
       const run = async () => {
@@ -96,6 +184,7 @@ function CourseList({ loginDetails, setLoginDetails }) {
             console.log(response.data)
             setCourses(response.data.courses)
           }
+          
         } catch (error) {
           alert("error occurred")
         }
@@ -103,11 +192,21 @@ function CourseList({ loginDetails, setLoginDetails }) {
       run();
     }
   }, [courses])
-
+  useEffect(()=>{
+    const run= async()=>{
+    const respo2=await axios.post("http://localhost:3001/api/getenrolledcourses",{email:loginDetails.email})
+          if (respo2.data.acknowledged){
+            setLoginDetails(respo2.data.loginDetails)
+          }
+        setEnrollDetails(prev=>!prev)
+        }
+        if (enrollDetails){
+        run()}
+        },[enrollDetails])
   return (
     <div className="container mx-auto">
       <h1 className="text-3xl font-bold mb-8">Course Listings</h1>
-      <CourseListing courses={courses} loginDetails={loginDetails} setLoginDetails={setLoginDetails} />
+      <CourseListing courses={courses} loginDetails={loginDetails} setLoginDetails={setLoginDetails} setEnrollDetails={setEnrollDetails} />
     </div>
   );
 }

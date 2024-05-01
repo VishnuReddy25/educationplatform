@@ -47,7 +47,7 @@ const VideoSlider = ({slider,setVideolink,setTitle,setDescription,slidermenu,set
       useEffect(()=>{console.log("slidermenu",slidermenu)},[slidermenu])
     const solveHandler=async(unit)=>{
       try{
-      const response=await axios.post("http://localhost:3001/api/markassolved",{email:loginDetails.email,courseid:courseId,unit:unit})
+      const response=await axios.post("http://localhost:3001/api/markassolved",{email:loginDetails.email,courseid:courseId,unit:unit,title:loginDetails.enrolled_courses[courseId].title})
       if (response.data.acknowledged){
         setLoginDetails(response.data.loginDetails)
         console.log(loginDetails.enrolled_courses["unit1"])

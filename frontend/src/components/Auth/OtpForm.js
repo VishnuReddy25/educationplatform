@@ -1,11 +1,13 @@
 import React, { useState, useRef,useEffect } from 'react';
 import "../../assets/CSS/OtpForm.css"
 import axios from "axios"
+
 const baseurl="http://localhost:3001"
-const OtpForm = ({loginDetails,setLoginDetails}) => {
+
+const OtpForm = ({loginDetails,setLoginDetails,navigate}) => {
+  
   const [otp, setOtp] = useState(['', '', '', '']);
   const refs = useRef([])
-
   const handleChange = (index, value) => {
     const newOtp = [...otp];
     newOtp[index] = value.substring(value.length-1) // Allow only numeric input and limit to 1 character
@@ -43,7 +45,7 @@ const OtpForm = ({loginDetails,setLoginDetails}) => {
 useEffect(()=>{
   if(loginDetails.verified===true){
     alert("verification success",loginDetails)
-    console.log("verificication success by otp form")
+    
     
   }
 },[loginDetails])

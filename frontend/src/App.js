@@ -14,6 +14,8 @@ import CourseList from "./components/CourseList.js";
 import Coursecontent from './components/Pages/Coursecontent.js'
 import Navbar1 from "./components/Navbar1.tsx";
 import AiHelp from "./components/AiHelp.tsx";
+import Profile from "./components/Pages/Profile.jsx";
+import Product from "./components/Pages/Product.js"
 function App() {
   
   const navigate=useNavigate()
@@ -37,13 +39,13 @@ function App() {
   },[loginDetails])
   return (<>
       
-      <Navbar1 islogin={islogin}/> {/* Render Navbar component outside of Routes */}
+      <Navbar1  islogin={islogin} setIslogin={setIslogin} /> {/* Render Navbar component outside of Routes */}
       <Routes>
         {/* <Route path="/navbar1" element={<Navbar1 islogin={islogin} />} /> */}
         <Route path="/home" element={<Home/>}/>
         <Route path="/signin" element={<SignInForm loginDetails={loginDetails} setLoginDetails={setLoginDetails} setIslogin={setIslogin} navigate={navigate}/>} />
         <Route path="/signup" element={<SignUpForm loginDetails={loginDetails} setLoginDetails={setLoginDetails} setIslogin={setIslogin} navigate={navigate}/>} />
-        <Route path="/otp" element={<OtpForm />} />
+        <Route path="/otp" element={<OtpForm navigate={navigate}/>} />
         <Route path="/loader" element={<Loader />} />
         <Route path="/paymentform" element={<CoursePayment />} />
         <Route path="/contactus" element={<ContactUs />} />
@@ -51,6 +53,9 @@ function App() {
         <Route path="/courselist" element={<CourseList loginDetails={loginDetails} setLoginDetails={setLoginDetails}/>}/>
         <Route path="/course" element={<Coursecontent loginDetails={loginDetails} setLoginDetails={setLoginDetails}/>}/>
         <Route path="/aihelp" element={<AiHelp/>}/>
+        <Route path="/profile" element={<Profile userData={loginDetails}  />}/>
+        <Route path="/payment" element={<Product/>}/>
+
       </Routes>
       </>
   );

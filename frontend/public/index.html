@@ -26,6 +26,28 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>React App</title>
+    <style>
+      /* Define scrollbar styles */
+::-webkit-scrollbar {
+    width: 5px; /* Width of vertical scrollbar */
+    height: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Color of the scrollbar track */
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #888; /* Color of the scrollbar handle */
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Color of the scrollbar handle on hover */
+}
+    </style>
   </head>
   <body style="height: 100%;">
     <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -41,5 +63,7 @@
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
     <script src="dist/bundle.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
   </body>
 </html>

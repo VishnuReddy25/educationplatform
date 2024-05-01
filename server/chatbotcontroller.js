@@ -17,7 +17,7 @@ router.post("/api/chat",async(req,res)=>{
             generationConfig: generationConfig});
             
 const result = await chat.sendMessage(message);
-console.log(result.response.text());
+
          res.send({acknowledged:true,text:result.response.text()})
         }catch(err){
             console.log(err)

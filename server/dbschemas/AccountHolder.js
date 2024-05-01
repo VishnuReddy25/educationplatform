@@ -22,7 +22,14 @@ const AccountHolderSchema= new mongoose.Schema({
         type: Map,
         default: {}
       },
-      completed_courses: [String],
+      completed_courses: {
+        type:Map,
+        default:{}
+      },
+      password:{
+        type:String,
+        default:""
+      },
       AuthType:{
         type:String,
         required:true

@@ -10,11 +10,11 @@ import OtpForm from "../Auth/OtpForm.js"
 import Loader from "../Loader/Loader.js"
 import { useNavigate } from 'react-router-dom';
 
-const SignUpForm = () => {
+const SignUpForm = ({setIslogin,loginDetails,setLoginDetails}) => {
   const navigate= useNavigate()
     const [loader,setLoader]=useState(false)
     const [otpForm,setOtpForm]=useState(false)
-    const [loginDetails,setLoginDetails]=useState({verified:false})
+    
     const [otpVerify,setOtpVerify]=useState(true)
     // State variables for email and password fields
     const [email, setEmail] = useState('');
@@ -69,11 +69,13 @@ const SignUpForm = () => {
     .then(async response => {
       console.log(response.data);
       const signupresponse=await axios.post("http://localhost:3001/api/auth/google",response.data)
-        if (signupresponse.data.acknowledged){
-
-            setLoginDetails(signupresponse.data.loginDetails)
-            navigate("/home")
-        }else{
+      const response2=signupresponse
+      if (response2.data.acknowledged===true){
+        console.log(response2.data.loginDetails)
+        setIslogin(true)
+        setLoginDetails(response2.data.loginDetails)
+        navigate("/home")//navigation to hame after successfull sign up
+      }else{
             alert("loginfailed error occurredd")
         }
     })
@@ -99,6 +101,9 @@ const SignUpForm = () => {
         console.log(loginDetails)
         console.log((loginDetails.verified === false && otpVerify ===false))
         console.log(loginDetails,otpVerify)
+        if(loginDetails.verified==true){
+          navigate("/signin")
+        }
         if (loginDetails.verified === false && otpVerify ===false) {
             
             const sendOtp = async () => {

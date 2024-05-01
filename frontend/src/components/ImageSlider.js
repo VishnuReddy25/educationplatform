@@ -1,65 +1,92 @@
-import React, { useEffect, useState } from 'react';
+import { useState } from "react";
 
-const ImageSlider = () => {
-  const [index, setIndex] = useState(0);
-  const [images] = useState([
-    'https://th.bing.com/th/id/OIP.7uBkSaimXdKvusc2281O4QHaFj?w=235&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7',
-    'https://th.bing.com/th/id/OIP.-_1LA-86G8zEbH8skIM-cQHaJi?w=136&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7',
-    'https://th.bing.com/th/id/OIP.oQAf7qv5MH61t6N2_uHm1QHaD4?w=279&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7'
-  ]);
-  const [interval] = useState(1200);
+const slideStyles = {
+  width: "100%",
+  height: "100%",
+  borderRadius: "10px",
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+};
 
-  const timechanger = () => {
-    const intervalId = setTimeout(() => {
-      console.log("interval id executed");
-      setIndex(prevIndex => (prevIndex + 1) % images.length);
-    }, interval);
-    return () => clearTimeout(intervalId); // Clear the timeout when the component unmounts or when index changes
+const rightArrowStyles = {
+  position: "absolute",
+  top: "50%",
+  transform: "translate(0, -50%)",
+  right: "32px",
+  fontSize: "45px",
+  color: "#fff",
+  zIndex: 1,
+  cursor: "pointer",
+};
+
+const leftArrowStyles = {
+  position: "absolute",
+  top: "50%",
+  transform: "translate(0, -50%)",
+  left: "32px",
+  fontSize: "45px",
+  color: "#fff",
+  zIndex: 1,
+  cursor: "pointer",
+};
+
+const sliderStyles = {
+  position: "relative",
+  height: "100%",
+};
+
+const dotsContainerStyles = {
+  display: "flex",
+  justifyContent: "center",
+};
+
+const dotStyle = {
+  margin: "0 3px",
+  cursor: "pointer",
+  fontSize: "20px",
+};
+
+const ImageSlider = ({ slides }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const goToPrevious = () => {
+    const isFirstSlide = currentIndex === 0;
+    const newIndex = isFirstSlide ? slides.length - 1 : currentIndex - 1;
+    setCurrentIndex(newIndex);
   };
-
-  const arrowChanger = padd => {
-    if (index < images.length - 1 && padd === 1) {
-      setIndex(prev => prev + padd);
-    } else if (index > 0 && padd === -1) {
-      setIndex(prev => prev + padd);
-    }
+  const goToNext = () => {
+    const isLastSlide = currentIndex === slides.length - 1;
+    const newIndex = isLastSlide ? 0 : currentIndex + 1;
+    setCurrentIndex(newIndex);
   };
-
-  useEffect(() => {
-    console.log('hello');
-    return timechanger();
-  }, [index]);
-
-  const radioChangeHandler = e => {
-    setIndex(parseInt(e.target.value));
+  const goToSlide = (slideIndex) => {
+    setCurrentIndex(slideIndex);
+  };
+  const slideStylesWidthBackground = {
+    ...slideStyles,
+    backgroundImage: `url(${slides[currentIndex].url})`,
   };
 
   return (
-    <div className='imageslider-container relative h-auto w-screen flex justify-center'>
-      <div className='imageslider h-[350px] w-[400px]'>
-
-        {images.map((item, i) => (
-          <img
-            key={i}
-            className={`absolute object-cover top-0 left-0 right-0  ${i === index ? 'opacity-1' : 'opacity-0'}`}
-            src={item}
-            alt={`Slide ${i + 1}`}
-          />
-        ))}
-
-        <div className='radiobuttoncontainer '>
-          {images.map((item, i) => (
-            <input
-              className='imageradiobutton'
-              key={i}
-              type='radio'
-              value={i}
-              checked={index === i}
-              onChange={radioChangeHandler}
-            />
-          ))}
+    <div style={sliderStyles}>
+      <div>
+        <div onClick={goToPrevious} style={leftArrowStyles}>
+          ❰
         </div>
-
+        <div onClick={goToNext} style={rightArrowStyles}>
+          ❱
+        </div>
+      </div>
+      <div style={slideStylesWidthBackground}></div>
+      <div style={dotsContainerStyles}>
+        {slides.map((slide, slideIndex) => (
+          <div
+            style={dotStyle}
+            key={slideIndex}
+            onClick={() => goToSlide(slideIndex)}
+          >
+            ●
+          </div>
+        ))}
       </div>
     </div>
   );
