@@ -2,6 +2,8 @@ import React from 'react';
 import {useNavigate,Link} from 'react-router-dom'
 const Profile = ({userData}) => {
   const { name, email, profile_picture, enrolled_courses, completed_courses,role } = userData;
+  console.log(profile_picture)
+  console.log(userData)
     const navigate=useNavigate()
   return (
     <div className="max-w-4xl mx-auto py-8">
