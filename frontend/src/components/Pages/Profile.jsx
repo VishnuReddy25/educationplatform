@@ -2,15 +2,15 @@ import React from 'react';
 import {useNavigate,Link} from 'react-router-dom'
 const Profile = ({userData}) => {
   const { name, email, profile_picture, enrolled_courses, completed_courses,role } = userData;
-  console.log(profile_picture)
-  console.log(userData)
+  console.log(profile_picture, "profile.jsx")
+  console.log(userData,"userData")
     const navigate=useNavigate()
   return (
     <div className="max-w-4xl mx-auto py-8">
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         <div className="px-4 py-6">
           <div className="flex items-center">
-            <img src={profile_picture} alt={name} className="h-16 w-16 rounded-full mr-4" />
+            <img src={`${profile_picture}`} alt={name} className="h-16 w-16 rounded-full mr-4" />
             <div>
               <h2 className="text-xl font-semibold">{name}</h2>
               <p className="text-gray-600">{email}</p>
